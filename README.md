@@ -1,173 +1,211 @@
+<div align="center">
+
+![Waldo Logo](Images/WaldoImage.png)
+
 # WaldoFinderPro
 
-<p align="center">
-  <img src="Images/WaldoImage.jpeg" width="600"/>
-</p>
+**Single-Class Pretraining + Multi-Class Fine-Tuning for Robust Waldo Detection**
 
-<p align="center">
-  <img src="https://img.icons8.com/color/48/search.png" width="28" style="vertical-align:middle;"/> 
-  <span style="font-size:28px; font-weight:bold;"> Single-Class Pretraining + Multi-Class Fine-Tuning for Robust Waldo Detection </span>
-</p>
-<p align="center">
-  <b>Authors:</b> Sanjay Srinivasan, Roshini Gopinath  
-</p>
-
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![PyTorch](https://img.shields.io/badge/PyTorch-2.x-red)
-![YOLO](https://img.shields.io/badge/YOLO-v11x-green)
-![Computer Vision](https://img.shields.io/badge/Task-Object%20Detection-purple)
-![Dataset](https://img.shields.io/badge/Data-Waldo%20Custom-orange)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=fff)](#)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c?style=for-the-badge&logo=pytorch&logoColor=fff)](#)
+[![YOLO](https://img.shields.io/badge/YOLO-v11x-4E9A06?style=for-the-badge&logo=yolo&logoColor=fff)](#)
+[![Roboflow](https://img.shields.io/badge/Roboflow-Annotated-blue?style=for-the-badge)](#)
+</div>
 
 ---
 
-## 🔎 Project Description
+## Table of Contents
+- [Abstract](#abstract)
+- [Project Description](#project-description)
+- [Objectives](#objectives)
+- [Dataset](#dataset)
+- [System Workflow](#system-workflow)
+- [Methodology](#methodology)
+- [Project Structure](#project-structure)
+- [Training & Inference](#training--inference)
+- [Results](#results)
+- [Qualitative Predictions](#qualitative-predictions)
+- [Challenges](#challenges)
+- [Future Work](#future-work)
+- [References](#references)
+- [Contact](#contact)
 
-The *Where’s Waldo?* books present a unique challenge for object detection: Waldo is often small, occluded, and surrounded by thousands of distractors.  
+---
 
-Our project leverages **YOLOv11x** in a two-stage training strategy:  
-1. **Single-Class Training (1C):** Train YOLOv11x on Waldo only.  
-2. **Multi-Class Fine-Tuning (4C):** Initialize from the best 1C weights and fine-tune on Waldo, Odlaw, Wilma, and Wizard.  
+## Abstract
 
-This pipeline significantly reduced **false positives**, as the detector learned to differentiate Waldo from visually similar characters (especially Odlaw).  
+This project addresses the **Where’s Waldo?** puzzle as a benchmark for object detection in cluttered environments.  
+We propose a **two-stage training pipeline** using YOLOv11x:
+
+1. **Single-Class Training (1C):** Train on Waldo only.  
+2. **Multi-Class Fine-Tuning (4C):** Initialize from 1C weights, fine-tune on Waldo, Odlaw, Wilma, Wizard.  
+
+This strategy reduces **false positives** by explicitly modeling Waldo’s look-alikes, achieving higher **precision, recall, and mAP** than baselines.
+
+---
+
+## Project Description
+
+The *Where’s Waldo?* books pose a formidable challenge: small targets, occlusion, and high scene clutter.  
+Our system leverages YOLOv11x with custom augmentations (mosaic, copy-paste) and training tricks to robustly find Waldo in full-page images.
 
 <p align="center">
   <img src="Images/Waldocharacters.png" width="600"/>
   <br/>
-  <em>Figure 1: Multi-class setup with Waldo, Wilma, Odlaw, and Wizard.</em>
+  <em>Figure: Multi-class setup including Waldo, Odlaw, Wilma, Wizard.</em>
 </p>
 
 ---
 
-## 🎯 Objectives
+## Objectives
 
-- Pretrain a strong Waldo-only detector as a base model.  
-- Fine-tune the detector on **Waldo + look-alike characters** to reduce false positives.  
-- Evaluate improvements in **precision, recall, mAP@50, and F1**.  
-- Validate performance on unseen Waldo puzzle pages with cluttered backgrounds.  
-- Demonstrate the benefit of **single-class pretraining + multi-class fine-tuning**.  
+- Build a reliable **Waldo-only base model**.  
+- Fine-tune on **multi-class labels** to reduce misclassifications.  
+- Benchmark against **precision, recall, mAP@50, F1**.  
+- Demonstrate robustness on unseen cluttered puzzle pages.  
 
 ---
 
-## 📂 Dataset
+## Dataset
 
-- **Source:** Full-page Waldo puzzle scans  
-- **Annotations:** YOLO format (`cls, x_center, y_center, width, height`)  
-- **Resizing:** 1280 px resolution for training  
+- **Source:** Annotated Waldo puzzle pages  
+- **Format:** YOLO TXT (`cls, x_center, y_center, w, h`)  
+- **Resolution:** 1280 px  
 - **Augmentation:** Mosaic, flips, copy-paste  
-- **Splits:** Train 70%, Validation 20%, Test 10%  
-
-**Dataset challenges:**  
-- Waldo often < 24 px tall → tiny object detection problem.  
-- Heavy occlusion in crowded backgrounds.  
-- Look-alike distractors (Odlaw’s striped shirt).  
-- Computational cost of full-page training at high resolution.  
+- **Splits:** Train 70%, Val 20%, Test 10%  
 
 ---
 
-## ⚙️ Methodology
+## System Workflow
 
-**Stage 1: Single-Class Training (1C)**  
-- Model: YOLOv11x pretrained on COCO  
-- Target: Waldo only  
-- Output: `best_1c.pt` (used as initialization for 4C)  
+```mermaid
+flowchart LR
+    A[Dataset Collection<br/>Waldo Puzzle Pages] --> B[Annotation<br/>YOLO Format]
+    B --> C[Single-Class Training<br/>YOLOv11x Waldo Only]
+    C --> D[Best 1C Weights<br/>best_1c.pt]
+    D --> E[Multi-Class Fine-Tuning<br/>YOLOv11x Waldo, Odlaw, Wilma, Wizard]
+    E --> F[Evaluation<br/>Precision • Recall • mAP50 • F1]
+    F --> G[Inference on Full Pages<br/>Runs/Predictions]
+    G --> H[Qualitative Analysis<br/>Cluttered & Unseen Scenes]
 
-**Stage 2: Multi-Class Fine-Tuning (4C)**  
-- Input: best 1C weights  
-- Classes: Waldo, Odlaw, Wilma, Wizard  
-- Goal: teach the detector to recognize Waldo and distinguish him from look-alikes  
-
-**Evaluation Metrics:**  
-Precision • Recall • mAP@50 • F1 score  
-
----
-
-## 📊 Results & Analysis
-
-| Metric     | 1C Model | 4C Fine-Tuned Model | Gain |
-|------------|----------|----------------------|------|
-| Precision  | ~0.90    | **~0.95**           | ✅   |
-| Recall     | ~0.80    | **~0.85**           | ✅   |
-| mAP@50     | ~0.88    | **~0.95**           | ✅   |
-| F1 Score   | ~0.85    | **~0.90**           | ✅   |
-
-**Key Insight:**  
-The fine-tuned multi-class model achieved **higher precision** by learning about Odlaw, Wilma, and Wizard, thereby reducing false positives that plagued the 1C setup.  
-
-<p align="center">
-  <img src="Images/1c_results.png" width="700"/>
-  <br/>
-  <em>Figure 2: 1C training curves — stable convergence with good accuracy, but prone to false positives.</em>
-</p>
-
-<p align="center">
-  <img src="Images/4c_results.png" width="700"/>
-  <br/>
-  <em>Figure 3: 4C fine-tuning curves — higher variability, but stronger final performance across metrics.</em>
-</p>
-
-<p align="center">
-  <img src="Images/PR_curve.png" width="700"/>
-  <br/>
-  <em>Figure 4: Precision-Recall curve — Waldo AP = 0.867, showing strong balance between precision and recall after fine-tuning.</em>
-</p>
-
-<p align="center">
-  <img src="Images/F1_curve.png" width="700"/>
-  <br/>
-  <em>Figure 5: F1-Confidence curve — peak F1 ~0.85 at conf ≈0.28.</em>
-</p>
+    style A fill:#f8f9fa,stroke:#333,stroke-width:2px
+    style B fill:#f8f9fa,stroke:#333,stroke-width:2px
+    style C fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
+    style D fill:#fff3cd,stroke:#333,stroke-width:2px
+    style E fill:#e6ffe6,stroke:#009933,stroke-width:2px
+    style F fill:#ffe6e6,stroke:#cc0000,stroke-width:2px
+    style G fill:#f2e6ff,stroke:#663399,stroke-width:2px
+    style H fill:#d9f2f2,stroke:#008080,stroke-width:2px
+```
 
 ---
 
-## 🖼️ Qualitative Predictions
+## Methodology
+
+**Stage 1: Waldo-only Training**  
+```bash
+yolo detect train model=yolo11x.pt data=data_1c.yaml imgsz=1280 epochs=80 batch=4 project=runs name=1c_y11x
+```
+
+**Stage 2: Multi-Class Fine-Tuning**  
+```bash
+yolo detect train model=runs/detect/1c_y11x/weights/best.pt data=data_4c.yaml imgsz=1280 epochs=80 batch=4 project=runs name=4c_y11x
+```
+
+**Inference:**  
+```bash
+yolo predict model=runs/detect/4c_y11x/weights/best.pt source=demo_pages/ imgsz=1280 conf=0.28 iou=0.6 save=True
+```
+
+---
+
+## Project Structure
+
+```
+WaldoFinderPro/
+├── data/
+│   ├── train/val/test/images
+│   └── train/val/test/labels
+├── runs/                 # YOLO training outputs
+├── weights/              # Final best.pt files
+├── Images/               # Figures for README
+├── data_1c.yaml          # Single-class config
+├── data_4c.yaml          # Multi-class config
+└── README.md             # This file
+```
+---
+
+## Training & Inference
+
+- **1C model:** fast convergence, but misclassified Odlaw as Waldo.  
+- **4C model:** learned character distinctions → fewer false positives.  
+
+Output weights stored in `runs/detect/<exp>/weights/best.pt`.
+
+---
+
+## Results
+
+| Metric     | 1C Model | 4C Model | Gain |
+|------------|----------|----------|------|
+| Precision  | 0.90     | **0.95** | ✅   |
+| Recall     | 0.80     | **0.85** | ✅   |
+| mAP@50     | 0.88     | **0.95** | ✅   |
+| F1 Score   | 0.85     | **0.90** | ✅   |
+
+<p align="center">
+  <img src="Images/F1_curve.png" width="450"/>
+  <img src="Images/PR_curve.png" width="450"/>
+  <br/>
+  <em>Figure: F1-score and PR curve comparison for 1C vs 4C models.</em>
+</p>
+
+---
+
+## Qualitative Predictions
 
 <p align="center">
   <img src="Images/WaldoCluttered.jpg" width="800"/>
   <br/>
-  <em>Figure 6: Fine-tuned 4C model detecting Waldo (0.84), Wilma (0.77), Odlaw (0.89), Wizard (0.90) in a banquet scene — demonstrating robustness in extreme clutter.</em>
+  <em>Banquet scene — 4C model detects Waldo, Odlaw, Wilma, Wizard with strong confidence.</em>
 </p>
 
 <p align="center">
   <img src="Images/WaldoTrain.jpg" width="800"/>
   <br/>
-  <em>Figure 7: 4C model detecting all characters in a train station scene (Waldo 0.83, Odlaw 0.89, Wilma 0.79, Wizard 0.86). Fine-tuning reduced Waldo/Odlaw confusion.</em>
+  <em>Train station — 4C model reduces false positives by distinguishing Waldo from Odlaw.</em>
 </p>
 
-**Takeaways:**  
-- 1C → strong base model, but higher false positives.  
-- 4C fine-tuning → **better precision and reliability** in cluttered real-world images.  
-- Small (<24 px) Waldo instances remain a challenge.  
+---
+
+## Challenges
+
+- Detecting **tiny Waldo instances**  
+- **Occlusion** in dense scenes  
+- **False positives** in 1C setup  
+- Training cost at high resolution  
 
 ---
 
-## 🚧 Challenges
+## Future Work
 
-- Detecting very small Waldo instances.  
-- Heavy occlusion in busy scenes.  
-- False positives in 1C setup due to Odlaw similarity.  
-- Higher GPU memory cost at 1280 px training.  
-
----
-
-## 🚀 Future Work
-
-1. **Tiling + TTA** — improve recall for tiny Waldo detections.  
-2. **Transformer-based models** — DETR/YOLO-DETR hybrids for complex backgrounds.  
-3. **Interactive Web Demo** — upload a Waldo puzzle and get detections in real time.  
-4. **Dataset Expansion** — more Waldo books for generalization.  
-5. **Explainability** — use Grad-CAM/heatmaps to interpret model focus.  
+- **Tiling + TTA** for tiny detections  
+- **Transformers (DETR)** for complex layouts  
+- **Web demo** for real-time “Find Waldo” uploads  
+- Dataset expansion with more Waldo books  
+- Model explainability with Grad-CAM  
 
 ---
 
-## 📚 References  
+## References  
 
-1. C.-Y. Wang, A. Bochkovskiy, H.-Y. M. Liao. *YOLOv7: Trainable Bag-of-Freebies Sets New State-of-the-Art for Real-Time Object Detectors.* arXiv:2207.02696 (2022).  
+1. Wang, C.-Y., Bochkovskiy, A., Liao, H.-Y. M. (2022). *YOLOv7: Trainable Bag-of-Freebies Sets New State-of-the-Art for Real-Time Object Detectors.* arXiv:2207.02696.  
 2. Stanford CS231n Project (2024). *A Novel Approach to Solving “Where’s Waldo” (WaldoNet).*  
 3. Author(s). (2025). *High-Precision Multi-Class Object Detection Using Fine-Tuned YOLOv11.* SAI Conference.  
 
 ---
 
-## ✉️ Contact
+## Contact
 
 📧 **Sanjay Srinivasan** – sanjaynivasan@gmail.com  
 📧 **Roshini Gopinath** – roshini.gopinath@gmail.com  
