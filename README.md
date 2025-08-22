@@ -10,6 +10,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c?style=for-the-badge&logo=pytorch&logoColor=fff)](#)
 [![YOLO](https://img.shields.io/badge/YOLO-v11x-4E9A06?style=for-the-badge&logo=yolo&logoColor=fff)](#)
 [![Roboflow](https://img.shields.io/badge/Roboflow-Annotated-blue?style=for-the-badge)](#)
+[![Colab](https://img.shields.io/badge/Colab-GPU%20A100-orange?style=for-the-badge&logo=googlecolab)](#)
 </div>
 
 ---
@@ -21,6 +22,8 @@
 - [Dataset](#dataset)
 - [System Workflow](#system-workflow)
 - [Methodology](#methodology)
+- [Installation (Colab)](#installation-colab)
+- [YOLOv11x Framework](#yolov11x-framework)
 - [Project Structure](#project-structure)
 - [Training & Inference](#training--inference)
 - [Results](#results)
@@ -87,15 +90,6 @@ flowchart LR
     E --> F[Evaluation<br/>Precision • Recall • mAP50 • F1]
     F --> G[Inference on Full Pages<br/>Runs/Predictions]
     G --> H[Qualitative Analysis<br/>Cluttered & Unseen Scenes]
-
-    style A fill:#f8f9fa,stroke:#333,stroke-width:2px
-    style B fill:#f8f9fa,stroke:#333,stroke-width:2px
-    style C fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style D fill:#fff3cd,stroke:#333,stroke-width:2px
-    style E fill:#e6ffe6,stroke:#009933,stroke-width:2px
-    style F fill:#ffe6e6,stroke:#cc0000,stroke-width:2px
-    style G fill:#f2e6ff,stroke:#663399,stroke-width:2px
-    style H fill:#d9f2f2,stroke:#008080,stroke-width:2px
 ```
 
 ---
@@ -119,6 +113,40 @@ yolo predict model=runs/detect/4c_y11x/weights/best.pt source=demo_pages/ imgsz=
 
 ---
 
+## Installation (Colab)
+
+Run this project easily in **Google Colab with A100 GPU**:
+
+```bash
+# 1. Install YOLOv11x
+!pip install ultralytics==8.3.30
+
+# 2. Verify GPU
+import torch
+print("GPU:", torch.cuda.get_device_name(0))
+
+# 3. Mount Google Drive for data/weights
+from google.colab import drive
+drive.mount('/content/drive')
+```
+
+That’s it — now you can train (1C), fine-tune (4C), and run inference directly in Colab.
+
+---
+
+## YOLOv11x Framework
+
+- **Scales:** `11n → 11x` (x = largest, most accurate)  
+- **Architecture:** Enhanced backbone, decoupled detection head, built-in augmentations (mosaic, copy-paste, flips)  
+- **Why 11x?** Best suited for **tiny, cluttered targets** like Waldo in full-page images  
+- **Training Flow:**  
+  - Pretrain 1C (Waldo-only) → fine-tune 4C (Waldo + lookalikes)  
+  - This reduces **false positives** and improves recall  
+- **Evaluation Metrics:** Precision, Recall, mAP@50, and F1  
+
+
+---
+
 ## Project Structure
 
 ```
@@ -133,14 +161,13 @@ WaldoFinderPro/
 ├── data_4c.yaml          # Multi-class config
 └── README.md             # This file
 ```
+
 ---
 
 ## Training & Inference
 
 - **1C model:** fast convergence, but misclassified Odlaw as Waldo.  
 - **4C model:** learned character distinctions → fewer false positives.  
-
-Output weights stored in `runs/detect/<exp>/weights/best.pt`.
 
 ---
 
@@ -152,13 +179,6 @@ Output weights stored in `runs/detect/<exp>/weights/best.pt`.
 | Recall     | 0.80     | **0.85** | ✅   |
 | mAP@50     | 0.88     | **0.95** | ✅   |
 | F1 Score   | 0.85     | **0.90** | ✅   |
-
-<p align="center">
-  <img src="Images/F1_curve.png" width="450"/>
-  <img src="Images/PR_curve.png" width="450"/>
-  <br/>
-  <em>Figure: F1-score and PR curve comparison for 1C vs 4C models.</em>
-</p>
 
 ---
 
@@ -193,11 +213,10 @@ Output weights stored in `runs/detect/<exp>/weights/best.pt`.
 - **Transformers (DETR)** for complex layouts  
 - **Web demo** for real-time “Find Waldo” uploads  
 - Dataset expansion with more Waldo books  
-- Model explainability with Grad-CAM  
 
 ---
 
-## References  
+## References
 
 1. Wang, C.-Y., Bochkovskiy, A., Liao, H.-Y. M. (2022). *YOLOv7: Trainable Bag-of-Freebies Sets New State-of-the-Art for Real-Time Object Detectors.* arXiv:2207.02696.  
 2. Stanford CS231n Project (2024). *A Novel Approach to Solving “Where’s Waldo” (WaldoNet).*  
@@ -207,5 +226,5 @@ Output weights stored in `runs/detect/<exp>/weights/best.pt`.
 
 ## Contact
 
-📧 **Sanjay Srinivasan** – sanjaynivasan@gmail.com  
-📧 **Roshini Gopinath** – roshini.gopinath@gmail.com  
+- **Sanjay Srinivasan** — sanjaynivasan@gmail.com  
+- **Roshini Gopinath** — roshini.gopinath@gmail.com  
