@@ -1,0 +1,25 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+
+.env
+.venv
+
+# Ultralytics outputs & caches
+*.pt
+*.onnx
+*.engine
+*.torchscript
+*.tflite
+*.xml
+*.bin
+
+# Data
+data/*/train/images/
+data/*/train/labels/
+data/*/val/images/
+data/*/val/labels/
+data/*/test/images/
+data/*/test/labels/
+data/fullpage/images/

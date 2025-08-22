@@ -1,0 +1,5 @@
+path: ./data/4c
+train: train/images
+val:   val/images
+test:  test/images
+names: [Odlaw, Waldo, Wilma, Wizard]

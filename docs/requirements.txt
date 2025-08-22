@@ -1,0 +1,6 @@
+ultralytics==8.3.30
+torch
+torchvision
+numpy
+matplotlib
+Pillow
