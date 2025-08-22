@@ -16,7 +16,6 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-red)
 ![YOLO](https://img.shields.io/badge/YOLO-v11x-green)
 ![Computer Vision](https://img.shields.io/badge/Task-Object%20Detection-purple)
-![Status](https://img.shields.io/badge/Status-Ongoing-brightgreen)
 ![Dataset](https://img.shields.io/badge/Data-Waldo%20Custom-orange)
 
 ---
